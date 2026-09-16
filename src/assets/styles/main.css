@@ -1,0 +1,267 @@
+@import './fonts.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   1. DESIGN TOKENS
+   ============================================================ */
+@layer base {
+  :root {
+    --ivory: #faf7f1;
+    --porcelain: #f3ede3;
+    --sand: #e9e0d1;
+    --linen: #dbcfbc;
+    --taupe: #a89c8e;
+    --stone: #8b7f71;
+    --umber: #6e5b45;
+    --walnut: #4a3b2c;
+    --espresso: #33291f;
+    --brass: #b08d57;
+    --brass-soft: #d2b68a;
+
+    --shell-x: clamp(1.25rem, 5vw, 5.5rem);
+    --nav-h: 84px;
+    --ease-silk: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-velvet: cubic-bezier(0.65, 0, 0.35, 1);
+  }
+
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: auto;
+  }
+
+  body {
+    @apply bg-ivory text-walnut font-sans font-light;
+    font-size: 1rem;
+    line-height: 1.75;
+    overflow-x: hidden;
+  }
+
+  /* Lenis smooth scroll wiring */
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+  .lenis.lenis-stopped {
+    overflow: hidden;
+  }
+
+  ::selection {
+    background: var(--brass-soft);
+    color: var(--espresso);
+  }
+
+  h1, h2, h3, h4, h5 {
+    @apply font-display font-normal;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  img {
+    -webkit-user-drag: none;
+    user-select: none;
+  }
+
+  /* --- Elegant, low-contrast scrollbar --- */
+  ::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--porcelain);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--linen);
+    border-radius: 99px;
+    border: 2px solid var(--porcelain);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--taupe);
+  }
+
+  /* Focus ring — visible but refined */
+  :focus-visible {
+    outline: 2px solid var(--brass);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+}
+
+/* ============================================================
+   2. REUSABLE COMPONENT CLASSES
+   ============================================================ */
+@layer components {
+  .shell {
+    width: 100%;
+    max-width: 1440px;
+    margin-inline: auto;
+    padding-inline: var(--shell-x);
+  }
+
+  .eyebrow {
+    @apply font-sans text-eyebrow uppercase font-medium text-stone;
+  }
+
+  .eyebrow-rule {
+    @apply inline-flex items-center gap-3;
+  }
+  .eyebrow-rule::before {
+    content: '';
+    width: 34px;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.6;
+  }
+
+  .hairline {
+    @apply border-0 h-px w-full bg-linen/70;
+  }
+
+  /* Primary button — soft brass pill with a fill wipe */
+  .btn {
+    @apply relative inline-flex items-center justify-center gap-3 overflow-hidden rounded-full
+           px-7 py-3.5 text-[0.72rem] font-medium uppercase tracking-widest2
+           transition-colors duration-500 ease-silk;
+  }
+  .btn-solid {
+    @apply bg-walnut text-ivory;
+  }
+  .btn-solid:hover {
+    @apply bg-espresso;
+  }
+  .btn-outline {
+    @apply border border-taupe/60 text-walnut bg-transparent;
+  }
+  .btn-outline:hover {
+    @apply border-walnut bg-walnut text-ivory;
+  }
+  .btn-brass {
+    @apply bg-brass text-ivory;
+  }
+  .btn-brass:hover {
+    @apply bg-brass-deep;
+  }
+
+  /* Underline that draws in on hover */
+  .link-draw {
+    @apply relative inline-block;
+  }
+  .link-draw::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -3px;
+    height: 1px;
+    width: 100%;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.55s var(--ease-silk);
+  }
+  .link-draw:hover::after,
+  .link-draw[data-active='true']::after {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+
+  .card-soft {
+    @apply bg-porcelain/70 border border-linen/60 rounded-[2px];
+  }
+
+  /* Paper grain texture — adds warmth without weight */
+  .grain::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.32;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  }
+}
+
+/* ============================================================
+   3. ANIMATION UTILITIES
+   ============================================================ */
+@layer utilities {
+  /* Pre-reveal state for GSAP-driven elements (prevents FOUC flash) */
+  .js-reveal {
+    opacity: 0;
+    will-change: transform, opacity;
+  }
+  .is-revealed {
+    opacity: 1;
+  }
+
+  .mask-line {
+    display: block;
+    overflow: hidden;
+  }
+
+  .no-cursor {
+    cursor: none;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .snap-none {
+    scroll-snap-type: none;
+  }
+}
+
+/* Fallback: if JS is disabled, never leave content invisible */
+.no-js .js-reveal {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+/* ============================================================
+   4. PAGE + ROUTE TRANSITIONS
+   ============================================================ */
+.page-enter-active {
+  transition: opacity 0.5s var(--ease-silk), transform 0.7s var(--ease-silk);
+}
+.page-leave-active {
+  transition: opacity 0.32s ease-in, transform 0.42s ease-in;
+}
+.page-enter-from {
+  opacity: 0;
+  transform: translate3d(0, 26px, 0);
+}
+.page-leave-to {
+  opacity: 0;
+  transform: translate3d(0, -14px, 0);
+}
+
+/* ============================================================
+   5. REDUCED MOTION — respect user preference
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .js-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
