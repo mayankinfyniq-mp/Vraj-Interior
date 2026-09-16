@@ -153,16 +153,6 @@ onBeforeUnmount(() => {
               Interior design and turnkey execution from Ahmedabad — warm
               material, honest craft and rooms built to be lived in.
             </p>
-            <div class="flex flex-wrap items-center gap-6">
-              <ArrowLink to="/projects" label="View projects" tone="ivory" />
-              <RouterLink
-                to="/contact"
-                v-cursor="'link'"
-                class="group inline-flex items-center gap-3 rounded-full border border-ivory/35 px-7 py-3.5 text-[0.72rem] font-medium uppercase tracking-widest2 text-ivory transition-colors duration-500 hover:border-ivory hover:bg-ivory hover:text-walnut"
-              >
-                Book a consultation
-              </RouterLink>
-            </div>
           </div>
         </div>
 
