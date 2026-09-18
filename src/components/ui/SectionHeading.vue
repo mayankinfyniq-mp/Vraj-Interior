@@ -1,48 +1,49 @@
 <script setup>
-/**
- * SectionHeading — eyebrow + display heading + optional supporting
- * line. Every one of these animates in with the line-mask reveal.
- */
-import EyebrowLabel from './EyebrowLabel.vue'
+/** Shared section header: index, eyebrow, serif headline, optional side note. */
 import RevealText from './RevealText.vue'
 
 defineProps({
-  eyebrow: { type: String, default: '' },
   index: { type: String, default: '' },
+  eyebrow: { type: String, default: '' },
   title: { type: String, required: true },
-  italicWord: { type: String, default: '' },
-  lede: { type: String, default: '' },
-  align: { type: String, default: 'left' }, // left | center
-  size: { type: String, default: 'md' } // md | lg
+  note: { type: String, default: '' },
+  light: { type: Boolean, default: false },
+  align: { type: String, default: 'left' }, // left | center | split
 })
 </script>
 
 <template>
   <header
-    class="flex flex-col gap-5"
-    :class="align === 'center' ? 'items-center text-center' : 'items-start'"
+    class="flex flex-col gap-6 md:flex-row md:items-end md:justify-between"
+    :class="align === 'center' ? 'text-center md:flex-col md:items-center' : ''"
   >
-    <EyebrowLabel v-if="eyebrow" :text="eyebrow" :index="index" />
+    <div :class="align === 'center' ? 'mx-auto max-w-2xl' : ''">
+      <div
+        v-if="eyebrow || index"
+        v-reveal="{ y: 14 }"
+        class="mb-5 flex items-center gap-3"
+        :class="align === 'center' ? 'justify-center' : ''"
+      >
+        <span v-if="index" class="numbered" :class="light ? 'text-gold' : 'text-gold-deep'">{{ index }}</span>
+        <span class="h-px w-8" :class="light ? 'bg-porcelain/30' : 'bg-ink/20'" />
+        <span class="eyebrow" :class="light ? 'text-porcelain/65' : 'text-stone'">{{ eyebrow }}</span>
+      </div>
 
-    <RevealText
-      tag="h2"
-      :class="[
-        'font-display text-walnut',
-        size === 'lg' ? 'text-display-md' : 'text-display-sm',
-        align === 'center' ? 'mx-auto' : ''
-      ]"
-    >
-      <span v-if="!italicWord">{{ title }}</span>
-      <span v-else v-html="title.replace(italicWord, `<em class='font-light italic text-brass-deep'>${italicWord}</em>`)" />
-    </RevealText>
+      <RevealText
+        :text="title"
+        tag="h2"
+        class="display-lg block text-balance"
+        :class="light ? '!text-porcelain' : '!text-ink'"
+      />
+    </div>
 
     <p
-      v-if="lede"
-      v-reveal="{ delay: 0.12 }"
-      class="js-reveal max-w-prose2 text-[0.98rem] leading-[1.85] text-stone"
-      :class="align === 'center' ? 'mx-auto' : ''"
+      v-if="note"
+      v-reveal="{ y: 20, delay: 0.1 }"
+      class="lede md:max-w-[34ch] md:text-right"
+      :class="[light ? '!text-porcelain/70' : '', align === 'center' ? 'mx-auto text-center md:text-center' : '']"
     >
-      {{ lede }}
+      {{ note }}
     </p>
   </header>
 </template>

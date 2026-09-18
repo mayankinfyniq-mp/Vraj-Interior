@@ -1,39 +1,34 @@
-/**
- * main.js — application bootstrap
- * Order matters: fonts → global styles → PrimeVue → plugins.
- */
 import { createApp } from 'vue'
 import PrimeVue from 'primevue/config'
 import ToastService from 'primevue/toastservice'
-import Tooltip from 'primevue/tooltip'
 
 import App from './App.vue'
 import router from './router'
+import { VrajPreset } from './theme/preset'
+import reveal from './directives/reveal'
 
-import directives from './directives'
-import { VrajPreset } from './theme/prime-preset'
-
-import './assets/styles/main.css'
-import './theme/prime-overrides.css'
+/* Styles — order matters: fonts, primeicons, tailwind (see src/styles/main.css) */
+import '@fontsource/marcellus/400.css'
+import '@fontsource-variable/jost/index.css'
+import 'primeicons/primeicons.css'
+import './styles/main.css'
 
 const app = createApp(App)
 
 app.use(router)
-
 app.use(PrimeVue, {
+  ripple: false,
   theme: {
     preset: VrajPreset,
     options: {
-      darkModeSelector: '.never-dark', // light-only studio
-      cssLayer: false
-    }
+      darkModeSelector: '.vraj-dark',
+      cssLayer: false,
+    },
   },
-  ripple: false,
-  inputStyle: 'outlined'
 })
-
 app.use(ToastService)
-app.directive('tooltip', Tooltip)
-app.use(directives)
+
+/* v-reveal — IntersectionObserver + GSAP scroll reveals (no 3D) */
+app.directive('reveal', reveal)
 
 app.mount('#app')

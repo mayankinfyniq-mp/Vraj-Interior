@@ -1,70 +1,67 @@
-/**
- * router/index.js
- * ---------------------------------------------------------------
- * History routing with intelligent scroll restoration: jumps to the
- * top on a new page, but glides to an anchor when a hash is present.
- */
 import { createRouter, createWebHistory } from 'vue-router'
+import { nextTick } from 'vue'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { scrollToTop, scrollToEl } from '@/composables/useSmoothScroll'
-import { seo } from '@/data/site'
 
 const routes = [
   {
     path: '/',
     name: 'home',
     component: () => import('@/views/HomeView.vue'),
-    meta: { title: 'Interior Design Studio, Ahmedabad' }
+    meta: { title: 'Vraj Interior — Interior Design Studio, Ahmedabad' },
   },
   {
     path: '/services',
     name: 'services',
     component: () => import('@/views/ServicesView.vue'),
-    meta: { title: 'Services' }
-  },
-  {
-    path: '/about',
-    name: 'about',
-    component: () => import('@/views/AboutView.vue'),
-    meta: { title: 'About the Studio' }
+    meta: { title: 'Services — Kitchens, Living, Bedrooms | Vraj Interior' },
   },
   {
     path: '/projects',
     name: 'projects',
     component: () => import('@/views/ProjectsView.vue'),
-    meta: { title: 'Projects' }
+    meta: { title: 'Projects — Vraj Interior' },
+  },
+  {
+    path: '/about',
+    name: 'about',
+    component: () => import('@/views/AboutView.vue'),
+    meta: { title: 'Studio — Vraj Interior' },
   },
   {
     path: '/contact',
     name: 'contact',
     component: () => import('@/views/ContactView.vue'),
-    meta: { title: 'Contact' }
+    meta: { title: 'Contact — Vraj Interior' },
   },
-  { path: '/:pathMatch(.*)*', redirect: '/' }
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'not-found',
+    component: () => import('@/views/NotFoundView.vue'),
+    meta: { title: 'Not found — Vraj Interior' },
+  },
 ]
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
-  scrollBehavior(to, from, savedPosition) {
-    if (to.hash) return null // handled in afterEach
-    if (savedPosition) return savedPosition
-    return { top: 0 }
-  }
+  scrollBehavior() {
+    return { top: 0, left: 0 }
+  },
 })
 
-router.afterEach((to) => {
-  // Title
-  const base = seo.titleTemplate.replace('%s', to.meta.title || 'Studio')
-  document.title = to.meta.title === 'Interior Design Studio, Ahmedabad' ? base : base
-
-  // Scroll handling — Lenis needs to be told, not the browser
-  requestAnimationFrame(() => {
+router.afterEach(async (to) => {
+  if (to.meta?.title) document.title = to.meta.title
+  await nextTick()
+  scrollToTop()
+  /* let the new page paint, then re-measure every scroll trigger */
+  window.setTimeout(() => {
+    ScrollTrigger.refresh()
     if (to.hash) {
-      setTimeout(() => scrollToEl(to.hash, -100), 120)
-    } else {
-      scrollToTop(true)
+      const el = document.querySelector(to.hash)
+      if (el) scrollToEl(el, -110)
     }
-  })
+  }, 460)
 })
 
 export default router

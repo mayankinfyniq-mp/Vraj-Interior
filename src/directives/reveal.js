@@ -1,139 +1,89 @@
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
+gsap.registerPlugin(ScrollTrigger)
+
 /**
- * directives/reveal.js
- * ---------------------------------------------------------------
- * `v-reveal` — one directive for every scroll-in animation used on
- * the site. Keeps views declarative and free of GSAP boilerplate.
+ * v-reveal
+ * --------
+ * Usage:
+ *   v-reveal                                  → default fade + rise
+ *   v-reveal="{ y: 60, delay: 0.1 }"          → tuned
+ *   v-reveal="'left'" | "'right'" | "'mask'"   → named presets
+ *   v-reveal="{ children: true, stagger: 0.08 }"  → animates direct children
  *
- *   v-reveal                                  → fade + rise
- *   v-reveal="{ delay: 0.1 }"                 → fade + rise, delayed
- *   v-reveal="{ type: 'clip' }"               → image mask wipe up
- *   v-reveal="{ type: 'clip-x' }"             → image mask wipe from left
- *   v-reveal="{ type: 'scale' }"              → image scale-out reveal
- *   v-reveal="{ child: '.item', stagger: .08 }" → stagger direct children
- *   v-reveal="{ y: 0, distance: 60 }"         → tune the travel
+ * Plain 2D transforms only — no 3D, no rotation.
  */
-import { gsap, ScrollTrigger } from '@/plugins/gsap'
-import { prefersReducedMotion } from '@/composables/useSmoothScroll'
 
-const DEFAULTS = {
-  type: 'fade', // fade | clip | clip-x | scale | none
-  delay: 0,
-  duration: 1.1,
-  distance: 36,
-  scale: 0.94,
-  stagger: 0,
-  child: null,
-  start: 'top 88%',
-  once: true,
-  scrub: false
+const presets = {
+  up: { y: 44, x: 0, opacity: 0 },
+  left: { x: -56, y: 0, opacity: 0 },
+  right: { x: 56, y: 0, opacity: 0 },
+  mask: { y: 0, opacity: 0, scaleY: 1, clipPath: 'inset(0% 0% 100% 0%)' },
+  fade: { opacity: 0, y: 0, x: 0 },
 }
 
-function buildFrom(el, o) {
-  switch (o.type) {
-    case 'clip':
-      return { clipPath: 'inset(100% 0% 0% 0%)', opacity: 1 }
-    case 'clip-x':
-      return { clipPath: 'inset(0% 100% 0% 0%)', opacity: 1 }
-    case 'scale':
-      return { scale: o.scale, opacity: 0, transformOrigin: 'center' }
-    case 'none':
-      return { opacity: 0 }
-    default:
-      return { y: o.distance, opacity: 0 }
+function parse(value) {
+  if (typeof value === 'string') {
+    const preset = presets[value] || presets.up
+    return { ...preset, duration: 1.05, ease: 'power3.out', start: 'top 88%' }
   }
-}
-
-function buildTo(el, o) {
-  switch (o.type) {
-    case 'clip':
-    case 'clip-x':
-      return {
-        clipPath: 'inset(0% 0% 0% 0%)',
-        opacity: 1,
-        ease: 'expo.out',
-        duration: 1.45
-      }
-    case 'scale':
-      return { scale: 1, opacity: 1, ease: 'expo.out', duration: 1.4 }
-    case 'none':
-      return { opacity: 1 }
-    default:
-      return { y: 0, opacity: 1, ease: 'expo.out', duration: o.duration }
+  if (value && typeof value === 'object') {
+    return {
+      duration: 1.05,
+      ease: 'power3.out',
+      start: 'top 88%',
+      y: 0,
+      x: 0,
+      opacity: 0,
+      ...value,
+    }
   }
+  return { ...presets.up, duration: 1.05, ease: 'power3.out', start: 'top 88%' }
 }
 
-export const revealDirective = {
+export default {
   mounted(el, binding) {
-    if (prefersReducedMotion()) {
-      el.style.opacity = 1
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduce) {
+      gsap.set(el, { clearProps: 'all' })
       return
     }
 
-    const o = { ...DEFAULTS, ...(binding.value || {}) }
-    const targets = o.child ? Array.from(el.querySelectorAll(o.child)) : [el]
-    if (!targets.length) return
+    const opts = parse(binding.value)
+    const targets = opts.children ? Array.from(el.children) : el
+    const { start, children, stagger, delay, ...tween } = opts
 
-    if (o.child && o.stagger > 0) el.style.opacity = 1
+    const duration = tween.duration
+    const ease = tween.ease
+    delete tween.duration
+    delete tween.ease
+    delete tween.start
 
-    gsap.set(targets, buildFrom(el, o))
-
-    const tween = gsap.to(targets, {
-      ...buildTo(el, o),
-      delay: o.delay,
-      stagger: o.stagger,
+    gsap.set(targets, tween)
+    el.__revealTween = gsap.to(targets, {
+      y: 0,
+      x: 0,
+      opacity: 1,
+      scaleY: 1,
+      clipPath: 'inset(0% 0% 0% 0%)',
+      duration,
+      ease,
+      delay: delay || 0,
+      stagger: children ? stagger ?? 0.08 : 0,
       scrollTrigger: {
         trigger: el,
-        start: o.start,
-        once: o.once,
-        scrub: o.scrub || undefined,
-        // markers: false
-      }
+        start: start || 'top 88%',
+        once: true,
+      },
+      onComplete: () => {
+        gsap.set(targets, { clearProps: 'clipPath,willChange' })
+      },
     })
-
-    el.__revealTween = tween
   },
   unmounted(el) {
-    const tween = el.__revealTween
-    if (tween) {
-      if (tween.scrollTrigger) tween.scrollTrigger.kill()
-      tween.kill()
-      el.__revealTween = null
-    }
-  }
-}
-
-/**
- * directives/parallax.js — subtle depth on scroll.
- *   v-parallax="{ speed: 0.12 }"
- */
-export const parallaxDirective = {
-  mounted(el, binding) {
-    if (prefersReducedMotion()) return
-    const speed = binding.value?.speed ?? 0.12
-    const tween = gsap.fromTo(
-      el,
-      { yPercent: -speed * 100 },
-      {
-        yPercent: speed * 100,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: el.parentElement || el,
-          start: 'top bottom',
-          end: 'bottom top',
-          scrub: true
-        }
-      }
-    )
-    el.__parallaxTween = tween
+    el.__revealTween?.scrollTrigger?.kill()
+    el.__revealTween?.kill()
+    delete el.__revealTween
   },
-  unmounted(el) {
-    const tween = el.__parallaxTween
-    if (tween) {
-      if (tween.scrollTrigger) tween.scrollTrigger.kill()
-      tween.kill()
-      el.__parallaxTween = null
-    }
-  }
 }
-
-export { ScrollTrigger }

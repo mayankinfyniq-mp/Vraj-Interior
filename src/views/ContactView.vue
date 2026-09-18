@@ -1,354 +1,218 @@
 <script setup>
 /**
- * ContactView — a working enquiry form (PrimeVue fields + Toast),
- * the studio directory, and a hand-drawn location card so the page
- * never depends on a third-party map tile to look finished.
+ * ContactView — enquiry form (PrimeVue) beside a dark studio card, then FAQs.
  */
-import { ref, reactive, onMounted } from 'vue'
-import { contact, brand, socials } from '@/data/site'
-import { contactReasons, faqs } from '@/data/content'
-
-import PageHero from '@/components/PageHero.vue'
-import SectionHeading from '@/components/ui/SectionHeading.vue'
-import EyebrowLabel from '@/components/ui/EyebrowLabel.vue'
-import MagneticButton from '@/components/ui/MagneticButton.vue'
-
+import { reactive, ref } from 'vue'
 import InputText from 'primevue/inputtext'
 import Textarea from 'primevue/textarea'
 import Select from 'primevue/select'
-import Checkbox from 'primevue/checkbox'
-import Button from 'primevue/button'
 import Accordion from 'primevue/accordion'
 import AccordionPanel from 'primevue/accordionpanel'
 import AccordionHeader from 'primevue/accordionheader'
 import AccordionContent from 'primevue/accordioncontent'
 import { useToast } from 'primevue/usetoast'
+import { faqs, services, site } from '@/data/site'
+import PageHero from '@/components/ui/PageHero.vue'
+import RevealText from '@/components/ui/RevealText.vue'
 
 const toast = useToast()
+const sending = ref(false)
 
 const form = reactive({
   name: '',
   phone: '',
   email: '',
-  reason: null,
+  scope: null,
   message: '',
-  consent: false
 })
-const errors = reactive({})
-const sending = ref(false)
 
-const reasonOptions = contactReasons.map((r) => ({ label: r, value: r }))
+const scopes = [...services.map((s) => s.title), 'Not sure yet']
+const activeFaq = ref(0)
 
-function validate() {
-  Object.keys(errors).forEach((k) => delete errors[k])
-  if (form.name.trim().length < 2) errors.name = 'Please tell us your name.'
-  if (!/^[0-9+\-\s()]{8,16}$/.test(form.phone.trim())) errors.phone = 'Enter a reachable phone number.'
-  if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim()))
-    errors.email = "That email doesn't look right."
-  if (!form.reason) errors.reason = 'Pick the closest match.'
-  if (form.message.trim().length < 10) errors.message = 'A sentence or two about the space, please.'
-  if (!form.consent) errors.consent = 'We need your permission to reply.'
-  return Object.keys(errors).length === 0
-}
+const meta = [
+  { label: 'Replies', value: 'Within a day' },
+  { label: 'Studio', value: 'S.G. Highway' },
+  { label: 'Visits', value: 'Mon – Sat' },
+]
 
 function submit() {
-  if (!validate()) {
+  if (!form.name || !form.phone || !form.message) {
     toast.add({
-      severity: 'warn',
+      severity: 'error',
       summary: 'Almost there',
-      detail: 'Please check the highlighted fields.',
-      life: 3600
+      detail: 'Name, phone and a line about the project, please.',
+      life: 4200,
     })
     return
   }
   sending.value = true
-
-  // Static site — swap this block for your endpoint when you have one.
-  setTimeout(() => {
+  window.setTimeout(() => {
     sending.value = false
     toast.add({
       severity: 'success',
       summary: 'Enquiry received',
-      detail: `Thank you, ${form.name.split(' ')[0]}. A designer will call you within one working day.`,
-      life: 5200
+      detail: `Thank you, ${form.name}. The studio will call you within a day.`,
+      life: 5000,
     })
     form.name = ''
     form.phone = ''
     form.email = ''
-    form.reason = null
+    form.scope = null
     form.message = ''
-    form.consent = false
-  }, 1100)
+  }, 900)
 }
-
-onMounted(() => {
-  document.title = 'Contact — Vraj Interior'
-})
 </script>
 
 <template>
-  <div class="bg-ivory">
+  <div>
     <PageHero
-      eyebrow="Contact"
       index="05"
-      crumb="Contact"
-      title="Let's talk about your space."
-      lede="Call, write, or send the form below. The first conversation is free and there is no obligation — we will tell you honestly if we are the right studio for the job."
+      eyebrow="Contact"
+      title="Tell us about the site."
+      note="Share the plan, the rooms and the date you move in. We reply within a working day."
+      image="/images/pooja-04.jpg"
+      :meta="meta"
     />
 
-    <!-- ================= FORM + DIRECTORY ================= -->
-    <section class="py-20 md:py-24 lg:py-28">
-      <div class="shell grid gap-14 lg:grid-cols-12 lg:gap-16">
-        <!-- Form -->
-        <div v-reveal="{ delay: 0.05 }" class="js-reveal lg:col-span-7">
-          <EyebrowLabel text="Enquiry" index="01" />
-          <h2 class="mt-6 font-display text-display-sm font-light text-walnut">
-            Tell us a little about the project
-          </h2>
-          <p class="mt-4 max-w-prose2 text-[0.93rem] leading-[1.9] text-stone">
-            The more you share — room sizes, a floor plan, photographs, a budget
-            range — the more useful our first reply will be.
-          </p>
+    <section class="section bg-porcelain">
+      <div class="shell grid gap-10 lg:grid-cols-[1.15fr_1fr] lg:gap-16">
+        <!-- form -->
+        <div class="panel-light rounded-[6px] p-6 shadow-soft md:p-10" v-reveal="{ y: 30 }">
+          <div class="flex items-center gap-3">
+            <span class="numbered text-gold-deep">Enquiry</span>
+            <span class="h-px w-10 bg-ink/20" />
+            <span class="eyebrow text-stone">Two minutes</span>
+          </div>
 
-          <form class="vj-field mt-10 flex flex-col gap-7" novalidate @submit.prevent="submit">
-            <div class="grid gap-7 sm:grid-cols-2">
-              <div class="flex flex-col gap-2">
-                <label for="name" class="text-micro uppercase tracking-widest2 text-taupe">
-                  Your name *
-                </label>
-                <InputText id="name" v-model="form.name" placeholder="Meera Shah" autocomplete="name" />
-                <small v-if="errors.name" class="text-[0.74rem] text-brass-deep">{{ errors.name }}</small>
-              </div>
+          <h2 class="display-md mt-6">Start the conversation.</h2>
 
-              <div class="flex flex-col gap-2">
-                <label for="phone" class="text-micro uppercase tracking-widest2 text-taupe">
-                  Phone *
-                </label>
-                <InputText id="phone" v-model="form.phone" placeholder="+91 98250 00000" inputmode="tel" autocomplete="tel" />
-                <small v-if="errors.phone" class="text-[0.74rem] text-brass-deep">{{ errors.phone }}</small>
-              </div>
-            </div>
-
-            <div class="grid gap-7 sm:grid-cols-2">
-              <div class="flex flex-col gap-2">
-                <label for="email" class="text-micro uppercase tracking-widest2 text-taupe">Email</label>
-                <InputText id="email" v-model="form.email" placeholder="you@example.com" inputmode="email" autocomplete="email" />
-                <small v-if="errors.email" class="text-[0.74rem] text-brass-deep">{{ errors.email }}</small>
-              </div>
-
-              <div class="flex flex-col gap-2">
-                <label for="reason" class="text-micro uppercase tracking-widest2 text-taupe">
-                  What do you need? *
-                </label>
-                <Select
-                  id="reason"
-                  v-model="form.reason"
-                  :options="reasonOptions"
-                  option-label="label"
-                  option-value="value"
-                  placeholder="Choose one"
-                  :pt="{ overlay: { class: 'vj-select-panel' } }"
-                />
-                <small v-if="errors.reason" class="text-[0.74rem] text-brass-deep">{{ errors.reason }}</small>
-              </div>
-            </div>
-
-            <div class="flex flex-col gap-2">
-              <label for="message" class="text-micro uppercase tracking-widest2 text-taupe">
-                About the space *
+          <form class="mt-8 grid gap-5" @submit.prevent="submit">
+            <div class="grid gap-5 sm:grid-cols-2">
+              <label class="flex flex-col gap-2">
+                <span class="text-[0.7rem] uppercase tracking-wider2 text-stone">Name</span>
+                <InputText v-model="form.name" placeholder="Your name" />
               </label>
+              <label class="flex flex-col gap-2">
+                <span class="text-[0.7rem] uppercase tracking-wider2 text-stone">Phone</span>
+                <InputText v-model="form.phone" placeholder="+91" />
+              </label>
+            </div>
+
+            <div class="grid gap-5 sm:grid-cols-2">
+              <label class="flex flex-col gap-2">
+                <span class="text-[0.7rem] uppercase tracking-wider2 text-stone">Email</span>
+                <InputText v-model="form.email" placeholder="Optional" />
+              </label>
+              <label class="flex flex-col gap-2">
+                <span class="text-[0.7rem] uppercase tracking-wider2 text-stone">Scope</span>
+                <Select
+                  v-model="form.scope"
+                  :options="scopes"
+                  placeholder="What are we building?"
+                  :showClear="true"
+                />
+              </label>
+            </div>
+
+            <label class="flex flex-col gap-2">
+              <span class="text-[0.7rem] uppercase tracking-wider2 text-stone">Brief</span>
               <Textarea
-                id="message"
                 v-model="form.message"
                 rows="5"
-                placeholder="A 3BHK in Satellite, around 1,400 sq ft. We would like to redo the kitchen and both wardrobes…"
+                autoResize
+                placeholder="3BHK in Bopal — kitchen, hall and two bedrooms. Possession in October."
               />
-              <small v-if="errors.message" class="text-[0.74rem] text-brass-deep">{{ errors.message }}</small>
-            </div>
+            </label>
 
-            <div class="vj-check flex items-start gap-3">
-              <Checkbox v-model="form.consent" input-id="consent" :binary="true" />
-              <label for="consent" class="text-[0.83rem] leading-relaxed text-stone">
-                I agree that {{ brand.name }} may contact me about this enquiry. *
-              </label>
-            </div>
-            <small v-if="errors.consent" class="-mt-4 text-[0.74rem] text-brass-deep">{{ errors.consent }}</small>
-
-            <div class="flex flex-wrap items-center gap-6 pt-1">
-              <Button
-                type="submit"
-                :loading="sending"
-                class="rounded-full !bg-walnut !px-9 !py-3.5 !text-[0.72rem] !uppercase !tracking-widest2 !text-ivory hover:!bg-brass-deep"
-              >
-                {{ sending ? 'Sending…' : 'Send enquiry' }}
-              </Button>
-              <span class="text-[0.78rem] text-taupe">
-                Or call
-                <a :href="contact.phoneHref" v-cursor="'link'" class="link-draw text-walnut">{{ contact.phone }}</a>
-              </span>
+            <div class="mt-2 flex flex-wrap items-center justify-between gap-4">
+              <button type="submit" class="btn btn-ink" :disabled="sending" data-cursor="link">
+                <span>{{ sending ? 'Sending…' : 'Send enquiry' }}</span>
+                <i class="pi pi-arrow-right btn-arrow text-[0.72rem]" />
+              </button>
+              <p class="text-[0.72rem] uppercase tracking-wider2 text-stone">
+                Or call {{ site.phone }}
+              </p>
             </div>
           </form>
         </div>
 
-        <!-- Directory -->
-        <aside v-reveal="{ delay: 0.12 }" class="js-reveal lg:col-span-5">
-          <EyebrowLabel text="Studio" index="02" />
+        <!-- studio card -->
+        <aside class="flex flex-col gap-6">
+          <div class="relative overflow-hidden rounded-[6px] bg-ink p-7 text-porcelain md:p-9" v-reveal="{ y: 30, delay: 0.08 }">
+            <div class="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-emerald/30 blur-[90px]" />
+            <p class="eyebrow text-gold">The studio</p>
+            <ul class="mt-7 space-y-5 text-[0.92rem] font-light text-porcelain/75">
+              <li class="flex gap-3">
+                <i class="pi pi-map-marker mt-1 text-[0.8rem] text-gold" />
+                <span>{{ site.address }}</span>
+              </li>
+              <li class="flex gap-3">
+                <i class="pi pi-phone mt-1 text-[0.8rem] text-gold" />
+                <a :href="site.phoneHref" class="transition-colors hover:text-porcelain">{{ site.phone }}</a>
+              </li>
+              <li class="flex gap-3">
+                <i class="pi pi-envelope mt-1 text-[0.8rem] text-gold" />
+                <a :href="`mailto:${site.email}`" class="transition-colors hover:text-porcelain">{{ site.email }}</a>
+              </li>
+              <li class="flex gap-3">
+                <i class="pi pi-clock mt-1 text-[0.8rem] text-gold" />
+                <span>{{ site.hours }}</span>
+              </li>
+            </ul>
 
-          <div class="mt-6 flex flex-col gap-8">
-            <!-- Address -->
-            <div class="border-t border-linen pt-7">
-              <h3 class="text-micro uppercase tracking-widest2 text-taupe">Visit</h3>
-              <address class="mt-3 font-display text-[1.3rem] font-light not-italic leading-snug text-walnut">
-                {{ contact.address.line1 }}<br />
-                {{ contact.address.line2 }}<br />
-                {{ contact.address.city }}, {{ contact.address.region }}<br />
-                {{ contact.address.pincode }}
-              </address>
+            <div class="mt-8 flex flex-wrap gap-3">
+              <a :href="site.whatsapp" target="_blank" rel="noreferrer" class="btn btn-gold !px-5 !py-3" data-cursor="link">
+                <i class="pi pi-whatsapp text-[0.8rem]" />
+                <span>WhatsApp</span>
+              </a>
               <a
-                :href="contact.mapLink"
+                :href="`https://maps.google.com/?q=${encodeURIComponent(site.address)}`"
                 target="_blank"
-                rel="noopener noreferrer"
-                v-cursor="'link'"
-                class="link-draw mt-4 inline-block text-[0.8rem] uppercase tracking-widest2 text-brass-deep"
+                rel="noreferrer"
+                class="btn btn-ghost-light !px-5 !py-3"
+                data-cursor="link"
               >
-                Open in Maps
+                <span>Open in maps</span>
               </a>
             </div>
+          </div>
 
-            <!-- Direct lines -->
-            <div class="border-t border-linen pt-7">
-              <h3 class="text-micro uppercase tracking-widest2 text-taupe">Reach us</h3>
-              <div class="mt-3 flex flex-col gap-2.5">
-                <a
-                  :href="contact.phoneHref"
-                  v-cursor="'link'"
-                  class="link-draw self-start font-display text-[1.25rem] text-walnut"
-                >
-                  {{ contact.phone }}
-                </a>
-                <a
-                  :href="contact.altPhoneHref"
-                  v-cursor="'link'"
-                  class="link-draw self-start text-[0.95rem] text-stone hover:text-brass-deep"
-                >
-                  {{ contact.altPhone }}
-                </a>
-                <a
-                  :href="contact.emailHref"
-                  v-cursor="'link'"
-                  class="link-draw self-start text-[0.95rem] text-stone hover:text-brass-deep"
-                >
-                  {{ contact.email }}
-                </a>
+          <!-- map plate -->
+          <div class="relative overflow-hidden rounded-[6px] border border-ink/10 bg-white" v-reveal="{ y: 24, delay: 0.14 }">
+            <div
+              class="h-44 w-full bg-[radial-gradient(circle_at_30%_30%,rgba(195,161,90,0.18),transparent_55%),radial-gradient(circle_at_70%_70%,rgba(15,74,62,0.16),transparent_55%)]"
+            />
+            <div class="absolute inset-0 grid place-items-center">
+              <div class="flex items-center gap-3 rounded-full bg-white/85 px-5 py-2.5 backdrop-blur">
+                <span class="h-1.5 w-1.5 animate-breathe rounded-full bg-gold" />
+                <span class="text-[0.7rem] uppercase tracking-wider2 text-ink">{{ site.city }}, Gujarat</span>
               </div>
-            </div>
-
-            <!-- Hours -->
-            <div class="border-t border-linen pt-7">
-              <h3 class="text-micro uppercase tracking-widest2 text-taupe">Studio hours</h3>
-              <dl class="mt-3 flex flex-col gap-2.5 text-[0.9rem]">
-                <div v-for="h in contact.hours" :key="h.day" class="flex items-baseline justify-between gap-6">
-                  <dt class="text-stone">{{ h.day }}</dt>
-                  <dd class="text-walnut">{{ h.time }}</dd>
-                </div>
-              </dl>
-            </div>
-
-            <!-- Social -->
-            <div class="border-t border-linen pt-7">
-              <h3 class="text-micro uppercase tracking-widest2 text-taupe">Follow</h3>
-              <ul class="mt-4 flex flex-wrap gap-2.5">
-                <li v-for="s in socials" :key="s.label">
-                  <a
-                    :href="s.href"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    v-cursor="'link'"
-                    class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-linen text-[0.62rem] uppercase tracking-widest2 text-stone transition-all duration-500 ease-silk hover:border-brass hover:bg-brass hover:text-ivory"
-                  >
-                    {{ s.short }}
-                  </a>
-                </li>
-              </ul>
             </div>
           </div>
         </aside>
       </div>
     </section>
 
-    <!-- ================= LOCATION CARD ================= -->
-    <section class="bg-porcelain py-20 md:py-24">
-      <div class="shell grid gap-12 lg:grid-cols-12 lg:gap-16">
-        <div class="lg:col-span-5">
-          <SectionHeading
-            eyebrow="Getting here"
-            title="In the middle of the city, easy to park"
-            italic-word="park"
-            lede="We are on C.G. Road, a minute from Girish Cold Drinks. Visitor parking is available in the basement of the building."
-          />
-          <div class="mt-8">
-            <MagneticButton :href="contact.mapLink" label="Get directions" variant="outline" />
+    <!-- faqs -->
+    <section class="section bg-white">
+      <div class="shell grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20">
+        <div>
+          <div class="flex items-center gap-3" v-reveal="{ y: 14 }">
+            <span class="numbered text-gold-deep">FAQ</span>
+            <span class="h-px w-10 bg-ink/20" />
+            <span class="eyebrow text-stone">Before you ask</span>
           </div>
+          <RevealText text="The four questions everyone starts with." tag="h2" class="display-lg mt-6 block max-w-[18ch]" />
         </div>
 
-        <!-- Hand-built map illustration (no third-party tiles) -->
-        <div v-reveal="{ type: 'clip' }" class="js-reveal lg:col-span-7">
-          <div class="relative h-[340px] w-full overflow-hidden border border-linen bg-ivory md:h-[420px]">
-            <svg class="absolute inset-0 h-full w-full text-linen/70" viewBox="0 0 800 460" fill="none" aria-hidden="true">
-              <path d="M-20 120 H820" stroke="currentColor" stroke-width="26" />
-              <path d="M-20 300 H820" stroke="currentColor" stroke-width="14" />
-              <path d="M180 -20 V480" stroke="currentColor" stroke-width="20" />
-              <path d="M520 -20 V480" stroke="currentColor" stroke-width="10" />
-              <path d="M-20 400 L820 90" stroke="currentColor" stroke-width="6" stroke-dasharray="2 16" stroke-linecap="round" />
-              <rect x="300" y="150" width="150" height="105" fill="#E9E0D1" />
-              <rect x="560" y="200" width="110" height="80" fill="#E9E0D1" />
-              <rect x="60" y="330" width="120" height="70" fill="#E9E0D1" />
-              <circle cx="247" cy="235" r="86" fill="#B08D57" opacity="0.07" />
-              <circle cx="247" cy="235" r="52" fill="#B08D57" opacity="0.10" />
-            </svg>
-
-            <div class="absolute left-[30.9%] top-[51%] -translate-x-1/2 -translate-y-1/2">
-              <span class="relative flex h-4 w-4 items-center justify-center">
-                <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-brass/50" />
-                <span class="relative inline-flex h-3 w-3 rounded-full bg-brass ring-4 ring-ivory" />
-              </span>
-            </div>
-
-            <div class="absolute bottom-5 left-5 bg-ivory/95 px-5 py-4 shadow-[0_20px_50px_-30px_rgba(74,59,44,0.45)] backdrop-blur-sm">
-              <span class="block text-micro uppercase tracking-widest2 text-brass-deep">Studio</span>
-              <span class="mt-1 block font-display text-[1.1rem] text-walnut">Vraj Interior</span>
-              <span class="mt-0.5 block text-[0.78rem] text-stone">C.G. Road, Ahmedabad 380009</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ================= FAQ ================= -->
-    <section class="py-20 md:py-24 lg:py-28">
-      <div class="shell grid gap-12 lg:grid-cols-12 lg:gap-16">
-        <div class="lg:col-span-4">
-          <SectionHeading
-            eyebrow="Good to know"
-            title="Questions clients ask first"
-            italic-word="first"
-          />
-        </div>
-        <div class="lg:col-span-8">
-          <Accordion :value="null" class="vj-accordion">
-            <AccordionPanel v-for="(f, i) in faqs.slice(0, 4)" :key="i" :value="String(i)" class="!border-0 !bg-transparent">
-              <AccordionHeader>
-                <span class="flex items-baseline gap-4">
-                  <span class="text-[0.68rem] tracking-widest2 text-brass">{{ String(i + 1).padStart(2, '0') }}</span>
-                  {{ f.q }}
-                </span>
-              </AccordionHeader>
-              <AccordionContent>
-                <p class="max-w-prose2">{{ f.a }}</p>
-              </AccordionContent>
-            </AccordionPanel>
-          </Accordion>
-        </div>
+        <Accordion v-model:value="activeFaq" class="w-full">
+          <AccordionPanel v-for="(faq, i) in faqs" :key="faq.q" :value="i">
+            <AccordionHeader>{{ faq.q }}</AccordionHeader>
+            <AccordionContent>
+              <p>{{ faq.a }}</p>
+            </AccordionContent>
+          </AccordionPanel>
+        </Accordion>
       </div>
     </section>
   </div>
