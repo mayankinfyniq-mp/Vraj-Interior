@@ -230,29 +230,6 @@ watch(
           </div>
         </div>
       </div>
-
-      <div
-        data-hero-bottom
-        class="flex items-center justify-between border-t border-[#f4eee3]/15 pt-4"
-      >
-        <span
-          class="text-[0.52rem] uppercase tracking-[0.22em] text-[#f4eee3]/40 sm:text-[0.58rem]"
-        >
-          Ahmedabad · Gujarat
-        </span>
-
-        <button
-          type="button"
-          class="flex items-center gap-3 text-[0.52rem] uppercase tracking-[0.22em] text-[#f4eee3]/55 sm:text-[0.58rem]"
-          @click="scrollToEl('[data-hero-projects]')"
-        >
-          Scroll
-
-          <span
-            class="block h-7 w-px animate-breathe bg-[#f4eee3]/45"
-          />
-        </button>
-      </div>
     </div>
   </section>
 </template>
