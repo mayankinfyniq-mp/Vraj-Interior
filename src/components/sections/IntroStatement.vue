@@ -29,11 +29,7 @@ onMounted(() => {
   <section ref="root" class="section bg-porcelain">
     <div class="shell grid gap-14 lg:grid-cols-[1fr_1.05fr] lg:gap-20">
       <div class="lg:sticky lg:top-32 lg:self-start">
-        <div class="flex items-center gap-3" v-reveal="{ y: 14 }">
-          <span class="numbered text-gold-deep">01</span>
-          <span class="h-px w-10 bg-ink/20" />
-          <span class="eyebrow text-stone">The studio</span>
-        </div>
+        
 
         <RevealText
           text="We draw it, build it, hand over the keys."

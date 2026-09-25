@@ -105,15 +105,6 @@ const isActive = (to) => (to === '/' ? route.path === '/' : route.path.startsWit
 
         <!-- actions -->
         <div class="flex items-center gap-3 sm:gap-4">
-          <a
-            :href="site.phoneHref"
-            class="hidden items-center gap-2 text-[0.76rem] tracking-wider2 transition-colors duration-700 xl:flex"
-            :class="scrolled ? 'text-ink hover:text-gold-deep' : 'text-porcelain hover:text-gold-light'"
-            data-cursor="link"
-          >
-            <i class="pi pi-phone text-[0.72rem]" />
-            <span>{{ site.phone }}</span>
-          </a>
 
           <RouterLink
             to="/contact"

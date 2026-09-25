@@ -33,8 +33,6 @@ const meta = [
 <template>
   <div>
     <PageHero
-      index="03"
-      eyebrow="Selected work"
       title="Rooms we have handed over."
       note="Kitchens, halls, bedrooms and mandirs — photographed the week we finished them."
       image="/images/living-02.jpg"

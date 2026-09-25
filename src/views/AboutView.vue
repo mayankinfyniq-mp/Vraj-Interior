@@ -39,8 +39,6 @@ const meta = [
 <template>
   <div ref="root">
     <PageHero
-      index="04"
-      eyebrow="The studio"
       title="One studio, one standard."
       note="We keep the drawings, the workshop and the site crew together — so nothing is lost in translation."
       image="/images/suite-wood-01.jpg"

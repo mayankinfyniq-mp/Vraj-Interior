@@ -1,8 +1,4 @@
 <script setup>
-/**
- * HomeHero — full-bleed slideshow (3s), one short line of type, two actions.
- * The entrance timeline waits for the preloader curtain to lift.
- */
 import { onMounted, ref, watch } from 'vue'
 import gsap from 'gsap'
 import { appState } from '@/composables/useAppState'
@@ -15,32 +11,99 @@ const played = ref(false)
 
 function play() {
   if (played.value || !root.value) return
+
   played.value = true
-  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  const tl = gsap.timeline({ defaults: { ease: 'power4.out' } })
+
+  const reduce = window.matchMedia(
+    '(prefers-reduced-motion: reduce)',
+  ).matches
 
   if (reduce) {
-    gsap.set('[data-hero-line] .rt-inner, [data-hero-fade]', { y: 0, yPercent: 0, opacity: 1 })
+    gsap.set(
+      '[data-hero-top], [data-hero-title] .rt-inner, [data-hero-fade], [data-hero-line], [data-hero-bottom]',
+      {
+        y: 0,
+        yPercent: 0,
+        opacity: 1,
+        scaleX: 1,
+      },
+    )
     return
   }
 
-  tl.from('[data-hero-line] .rt-inner', { yPercent: 118, opacity: 0, duration: 1.15, stagger: 0.08 })
-    .from('[data-hero-fade]', { y: 26, opacity: 0, duration: 0.9, stagger: 0.09 }, 0.35)
-    .from('[data-hero-rule]', { scaleX: 0, duration: 1.2, ease: 'power2.inOut' }, 0.25)
-    .from('[data-hero-side] > *', { y: 18, opacity: 0, duration: 0.7, stagger: 0.07 }, 0.5)
+  const tl = gsap.timeline({
+    defaults: {
+      ease: 'power4.out',
+    },
+  })
+
+  tl.from('[data-hero-top]', {
+    y: -20,
+    opacity: 0,
+    duration: 0.7,
+  })
+    .from(
+      '[data-hero-title] .rt-inner',
+      {
+        yPercent: 115,
+        opacity: 0,
+        duration: 1.05,
+        stagger: 0.08,
+      },
+      0.15,
+    )
+    .from(
+      '[data-hero-line]',
+      {
+        scaleX: 0,
+        transformOrigin: 'left center',
+        duration: 0.9,
+        ease: 'power2.inOut',
+      },
+      0.5,
+    )
+    .from(
+      '[data-hero-fade]',
+      {
+        y: 18,
+        opacity: 0,
+        duration: 0.7,
+        stagger: 0.08,
+      },
+      0.55,
+    )
+    .from(
+      '[data-hero-bottom]',
+      {
+        y: 12,
+        opacity: 0,
+        duration: 0.6,
+      },
+      0.75,
+    )
 }
 
 onMounted(() => {
-  if (appState.preloaderDone) play()
+  if (appState.preloaderDone) {
+    play()
+  }
 })
+
 watch(
   () => appState.preloaderDone,
-  (done) => done && window.setTimeout(play, 60),
+  (done) => {
+    if (done) {
+      window.setTimeout(play, 60)
+    }
+  },
 )
 </script>
 
 <template>
-  <section ref="root" class="relative isolate min-h-[100svh] overflow-hidden pt-32 md:pt-36">
+  <section
+    ref="root"
+    class="relative isolate min-h-[100svh] overflow-hidden bg-[#18221e]"
+  >
     <ImageRotator
       fill
       scrim
@@ -50,68 +113,145 @@ watch(
       :items="heroSlides"
       rounded=""
     />
-    <div class="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-porcelain/95 to-transparent" />
 
-    <div class="relative shell flex min-h-[calc(100svh-9rem)] flex-col justify-between pb-10">
-      <!-- top meta -->
-      <div class="flex flex-wrap items-center gap-x-6 gap-y-3" data-hero-side>
-        <span class="chip chip--light">{{ site.city }} · Est. {{ site.established }}</span>
-        <span class="flex items-center gap-2 text-[0.7rem] uppercase tracking-wider2 text-porcelain/60">
-          <span class="h-1.5 w-1.5 animate-breathe rounded-full bg-gold" />
-          Turnkey residential interiors
-        </span>
-      </div>
+    <div
+      class="pointer-events-none absolute inset-0 bg-black/25"
+    />
 
-      <!-- headline block -->
-      <div class="max-w-4xl">
-        <h1 data-hero-line class="display-hero !text-porcelain">
-          <span class="block">
-            <span class="rt-word mr-[0.22em]"><span class="rt-inner">Homes,</span></span>
-            <span class="rt-word"><span class="rt-inner">quietly</span></span>
-          </span>
-          <span class="block italic text-gold-light">
-            <span class="rt-word"><span class="rt-inner">composed.</span></span>
-          </span>
-        </h1>
+    <div
+      class="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#101713]/45 via-[#101713]/10 to-[#101713]/25"
+    />
 
-        <div data-hero-rule class="mt-8 h-px w-full max-w-xl origin-left bg-porcelain/25" />
+    <div
+      class="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#101713]/25 via-transparent to-[#101713]/50"
+    />
 
-        <div class="mt-8 flex flex-col gap-7 md:flex-row md:items-center md:justify-between">
-          <p data-hero-fade class="max-w-sm text-[0.95rem] font-light leading-relaxed text-porcelain/70">
-            Modular kitchens, living halls, bedrooms and pooja rooms — designed, built and handed
-            over by one team.
-          </p>
-          <div data-hero-fade class="flex flex-wrap items-center gap-4">
-            <RouterLink to="/contact" class="btn btn-gold" data-cursor="link">
-              <span>Start a project</span>
-              <i class="pi pi-arrow-right btn-arrow text-[0.75rem]" />
-            </RouterLink>
-            <button
-              class="btn btn-ghost-light"
-              data-cursor="link"
-              @click="scrollToEl('[data-hero-projects]')"
+    <div
+      class="relative flex min-h-[100svh] flex-col px-5 pb-6 pt-24 sm:px-8 sm:pb-8 sm:pt-28 lg:px-12"
+    >
+
+      <div
+        class="flex flex-1 items-end pb-16 pt-20 sm:pb-20 sm:pt-24 md:items-center md:pb-10 md:pt-16"
+      >
+        <div
+          class="grid w-full grid-cols-1 items-end md:grid-cols-12"
+        >
+          <div
+            class="md:col-span-9 md:col-start-2 lg:col-span-8 lg:col-start-3"
+          >
+            <div
+              data-hero-fade
+              class="mb-4 flex items-center justify-center gap-2 sm:mb-6 sm:gap-3"
             >
-              <span>View work</span>
-            </button>
+              <span
+                class="h-px w-5 bg-[#dcb56b] sm:w-10"
+              />
+
+              <span
+                class="text-[0.42rem] uppercase tracking-[0.2em] text-[#dcb56b] sm:text-[0.56rem]"
+              >
+                Spaces with intention
+              </span>
+
+              <span
+                class="h-px w-5 bg-[#dcb56b] sm:w-10"
+              />
+            </div>
+
+            <h1
+              data-hero-title
+              class="mx-auto max-w-[800px] text-center !text-[#f4eee3]"
+            >
+              <span
+                class="block text-[clamp(2.5rem,10vw,6.5rem)] font-medium leading-[0.86] tracking-[-0.065em]"
+              >
+                <span class="rt-word mr-[0.1em]">
+                  <span class="rt-inner">
+                    Homes,
+                  </span>
+                </span>
+
+                <span class="rt-word">
+                  <span class="rt-inner">
+                    quietly
+                  </span>
+                </span>
+              </span>
+
+              <span
+                class="block text-[clamp(2.5rem,10vw,6.5rem)] font-medium italic leading-[0.94] tracking-[-0.065em] text-[#dcb56b]"
+              >
+                <span class="rt-word">
+                  <span class="rt-inner">
+                    composed.
+                  </span>
+                </span>
+              </span>
+            </h1>
+
+            <div
+              data-hero-line
+              class="mx-auto mt-5 h-px w-full max-w-lg origin-center bg-[#f4eee3]/25 sm:mt-7"
+            />
+
+            <p
+              data-hero-fade
+              class="mx-auto mt-4 max-w-[330px] text-center text-[0.62rem] font-light leading-[1.65] text-[#f4eee3]/65 sm:mt-6 sm:max-w-lg sm:text-[0.86rem] sm:leading-[1.8]"
+            >
+              Thoughtful interiors shaped through material, light,
+              proportion and the rhythm of everyday living.
+            </p>
+
+            <div
+              data-hero-fade
+              class="mt-5 flex flex-wrap items-center justify-center gap-4 sm:mt-8 sm:gap-6"
+            >
+              <RouterLink
+                to="/contact"
+                class="btn btn-gold"
+                data-cursor="link"
+              >
+                <span>Start a project</span>
+
+                <i
+                  class="pi pi-arrow-right btn-arrow text-[0.65rem]"
+                />
+              </RouterLink>
+
+              <button
+                type="button"
+                class="btn btn-ghost-light"
+                data-cursor="link"
+                @click="scrollToEl('[data-hero-projects]')"
+              >
+                <span>View our work</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- bottom rail -->
-      <div class="mt-10 flex items-end justify-between gap-6" data-hero-side>
-        <div class="flex items-center gap-4">
-          <span
-            v-for="(slide, i) in heroSlides"
-            :key="slide.label"
-            class="hidden text-[0.66rem] uppercase tracking-wider2 text-porcelain/45 md:block"
-          >
-            {{ String(i + 1).padStart(2, '0') }} {{ slide.label }}
-          </span>
-        </div>
-        <span class="flex items-center gap-3 text-[0.66rem] uppercase tracking-label text-porcelain/55">
-          Scroll
-          <span class="block h-8 w-px animate-breathe bg-porcelain/40" />
+      <div
+        data-hero-bottom
+        class="flex items-center justify-between border-t border-[#f4eee3]/15 pt-4"
+      >
+        <span
+          class="text-[0.52rem] uppercase tracking-[0.22em] text-[#f4eee3]/40 sm:text-[0.58rem]"
+        >
+          Ahmedabad · Gujarat
         </span>
+
+        <button
+          type="button"
+          class="flex items-center gap-3 text-[0.52rem] uppercase tracking-[0.22em] text-[#f4eee3]/55 sm:text-[0.58rem]"
+          @click="scrollToEl('[data-hero-projects]')"
+        >
+          Scroll
+
+          <span
+            class="block h-7 w-px animate-breathe bg-[#f4eee3]/45"
+          />
+        </button>
       </div>
     </div>
   </section>

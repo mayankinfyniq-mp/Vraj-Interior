@@ -42,8 +42,6 @@ const meta = [
 <template>
   <div>
     <PageHero
-      index="02"
-      eyebrow="Services"
       title="From modular kitchen to mandir."
       note="Seven things we do, and nothing we don’t. Each one drawn, built and finished by the same team."
       image="/images/kitchen-01.jpg"

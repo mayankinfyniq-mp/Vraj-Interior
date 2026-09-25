@@ -66,8 +66,6 @@ function submit() {
 <template>
   <div>
     <PageHero
-      index="05"
-      eyebrow="Contact"
       title="Tell us about the site."
       note="Share the plan, the rooms and the date you move in. We reply within a working day."
       image="/images/pooja-04.jpg"

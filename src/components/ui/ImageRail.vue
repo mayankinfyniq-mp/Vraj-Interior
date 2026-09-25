@@ -1,88 +1,175 @@
 <script setup>
-/**
- * ImageRail — a pinned horizontal gallery driven by vertical scroll.
- * Desktop: GSAP pin + translate (2D only).
- * Mobile / reduced-motion: a normal swipeable row.
- */
 import { onMounted, onUnmounted, ref } from 'vue'
-import gsap from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 const props = defineProps({
-  items: { type: Array, default: () => [] }, // [{ image, label, meta }]
-  height: { type: String, default: '78vh' },
+  items: {
+    type: Array,
+    default: () => [],
+  },
 })
 
 const section = ref(null)
-const viewport = ref(null)
-const track = ref(null)
-let ctx = null
+const visibleCards = ref(new Set())
+let observer = null
+
+function isVisible(index) {
+  return visibleCards.value.has(index)
+}
+
+function revealCard(index) {
+  visibleCards.value = new Set([
+    ...visibleCards.value,
+    index,
+  ])
+}
 
 onMounted(() => {
-  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  if (reduce) return
+  if (!section.value) return
 
-  ctx = gsap.context(() => {
-    const mm = gsap.matchMedia()
-    mm.add('(min-width: 1024px)', () => {
-      const distance = () => Math.max(0, track.value.scrollWidth - viewport.value.offsetWidth)
-      const tween = gsap.to(track.value, {
-        x: () => -distance(),
-        ease: 'none',
-        scrollTrigger: {
-          trigger: section.value,
-          start: 'top top',
-          end: () => `+=${distance() + window.innerHeight * 0.35}`,
-          pin: true,
-          scrub: 0.8,
-          anticipatePin: 1,
-          invalidateOnRefresh: true,
-        },
-      })
-      return () => tween.kill()
+  const cards = section.value.querySelectorAll(
+    '[data-project-card]',
+  )
+
+  if (!cards.length) return
+
+  const reduce = window.matchMedia(
+    '(prefers-reduced-motion: reduce)',
+  ).matches
+
+  if (reduce) {
+    cards.forEach((_, index) => {
+      revealCard(index)
     })
-    return () => mm.revert()
-  }, section.value)
+    return
+  }
+
+  observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return
+
+        const index = Number(
+          entry.target.getAttribute('data-index'),
+        )
+
+        revealCard(index)
+        observer?.unobserve(entry.target)
+      })
+    },
+    {
+      threshold: 0.12,
+      rootMargin: '0px 0px -60px 0px',
+    },
+  )
+
+  cards.forEach((card) => {
+    observer.observe(card)
+  })
 })
 
-onUnmounted(() => ctx?.revert())
+onUnmounted(() => {
+  observer?.disconnect()
+})
 </script>
 
 <template>
-  <section ref="section" class="relative overflow-hidden bg-porcelain">
-    <div class="shell flex items-end justify-between pb-8 pt-16 md:pt-20">
-      <slot name="header" />
-      <span class="hidden items-center gap-2 text-[0.68rem] uppercase tracking-wider2 text-stone md:flex">
-        <i class="pi pi-arrow-right text-[0.7rem] text-gold" />
-        Scroll to travel
-      </span>
-    </div>
-
-    <div ref="viewport" class="overflow-hidden pb-14 md:pb-20">
+  <section
+    ref="section"
+    class="relative overflow-hidden bg-porcelain"
+  >
+    <div
+      class="shell pb-16 pt-14 sm:pb-20 sm:pt-16 md:pb-24 md:pt-20"
+    >
       <div
-        ref="track"
-        class="flex w-max gap-4 px-5 sm:gap-6 md:px-10 lg:gap-8 xl:px-16"
-        :style="{ height }"
+        class="mb-8 flex flex-col gap-4 sm:mb-10 md:flex-row md:items-end md:justify-between"
       >
-        <figure
+        <slot name="header" />
+
+        <span
+          class="hidden items-center gap-2 text-[0.62rem] uppercase tracking-[0.2em] text-stone/65 md:flex"
+        >
+          <span class="h-px w-7 bg-gold/60" />
+          Explore spaces
+        </span>
+      </div>
+
+      <div
+        v-if="items.length"
+        class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+      >
+        <article
           v-for="(item, i) in items"
           :key="item.image + i"
-          class="group relative h-full shrink-0 overflow-hidden"
-          :class="i % 2 === 0 ? 'w-[76vw] sm:w-[46vw] lg:w-[34vw]' : 'w-[62vw] sm:w-[38vw] lg:w-[26vw] self-end h-[78%]'"
+          :data-index="i"
+          data-project-card
+          class="group overflow-hidden rounded-[4px] border border-ink/10 bg-white transition-all duration-700 ease-out hover:-translate-y-1 hover:shadow-[0_18px_45px_rgba(20,30,25,0.08)]"
+          :class="
+            isVisible(i)
+              ? 'translate-y-0 opacity-100'
+              : 'translate-y-8 opacity-0'
+          "
           data-cursor="view"
           data-cursor-label="View"
         >
-          <img
-            :src="item.image"
-            :alt="item.label || 'Vraj Interior'"
-            class="h-full w-full object-cover transition-transform duration-[1400ms] ease-premium group-hover:scale-[1.05]"
-            loading="lazy"
-          />
-          <figcaption class="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 bg-gradient-to-t from-ink/75 to-transparent p-5">
-            <span class="text-[0.78rem] uppercase tracking-wider2 text-porcelain">{{ item.label }}</span>
-            <span class="numbered text-porcelain/60">{{ String(i + 1).padStart(2, '0') }}</span>
-          </figcaption>
-        </figure>
+          <div
+            class="relative h-[155px] overflow-hidden sm:h-[170px] lg:h-[150px] xl:h-[160px]"
+          >
+            <img
+              :src="item.image"
+              :alt="item.label || 'Vraj Interior'"
+              class="h-full w-full object-cover transition-transform duration-1000 ease-out group-hover:scale-[1.045]"
+              loading="lazy"
+            />
+
+            <div
+              class="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink/50 via-transparent to-transparent"
+            />
+
+            <span
+              class="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full border border-white/30 bg-black/10 text-[0.52rem] text-white/80 backdrop-blur-sm"
+            >
+              {{ String(i + 1).padStart(2, '0') }}
+            </span>
+          </div>
+
+          <div
+            class="flex min-h-[82px] items-center justify-between gap-3 px-4 py-4 sm:px-5"
+          >
+            <div class="min-w-0">
+              <h3
+                class="truncate text-[0.92rem] font-medium tracking-[-0.015em] text-emerald sm:text-[0.98rem]"
+              >
+                {{ item.label || 'Interior Space' }}
+              </h3>
+
+              <p
+                v-if="item.meta"
+                class="mt-1 truncate text-[0.56rem] uppercase tracking-[0.15em] text-stone/60"
+              >
+                {{ item.meta }}
+              </p>
+            </div>
+
+            <span
+              class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-ink/10 text-ink/40 transition-all duration-500 group-hover:border-gold group-hover:bg-gold group-hover:text-white"
+            >
+              <i
+                class="pi pi-arrow-up-right text-[0.62rem]"
+              />
+            </span>
+          </div>
+        </article>
+      </div>
+
+      <div
+        v-else
+        class="border-y border-ink/10 py-12 text-center"
+      >
+        <p
+          class="text-[0.7rem] uppercase tracking-[0.2em] text-stone/60"
+        >
+          Spaces coming soon
+        </p>
       </div>
     </div>
   </section>

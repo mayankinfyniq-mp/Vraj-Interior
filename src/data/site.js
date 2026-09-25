@@ -1,8 +1,3 @@
-/**
- * Single source of truth for every piece of site content.
- * Keeping copy here keeps the components clean and makes edits one-line easy.
- */
-
 export const site = {
   name: 'Vraj Interior',
   monogram: 'V',
