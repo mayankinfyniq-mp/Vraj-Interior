@@ -1,9 +1,4 @@
 <script setup>
-/**
- * SiteLayout — the shell every page shares:
- * progress rule, header, mobile menu, routed page (with transition) and footer.
- * Also owns the single smooth-scroll instance.
- */
 import { onMounted, onUnmounted } from 'vue'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import SiteHeader from './SiteHeader.vue'

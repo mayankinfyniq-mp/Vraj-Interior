@@ -3,23 +3,35 @@ export const site = {
   monogram: 'V',
   tagline: 'Interior Design Studio',
   city: 'Ahmedabad',
-  phone: '+91 98240 12345',
-  phoneHref: 'tel:+919824012345',
-  whatsapp: 'https://wa.me/919824012345',
+
+  // Updated
+  phone: '+91 92748 30016',
+  phoneHref: 'tel:+919274830016',
+  whatsapp: 'https://wa.me/919274830016',
+
   email: 'studio@vrajinterior.in',
-  address: 'Sterling Tower, S.G. Highway, Ahmedabad, Gujarat 380054',
+
+  // Updated
+  address:
+    'E 401, Parmeshwar-4, Near Godrej Garden City, Opp-Navrangschool, Jagatpur Road, Ahmedabad, India 382470',
+
   hours: 'Mon – Sat · 10:00 – 19:00',
-  instagram: 'https://instagram.com',
+
+  instagram:
+    'https://www.instagram.com/vraj_interior_?stkn=MTJtcW5ueGwzeTR6Mw%3D%3D',
+
   pinterest: 'https://pinterest.com',
-  established: '2013',
+
+  // Updated
+  established: '2026',
 }
 
 export const nav = [
-  { index: '01', label: 'Home', to: '/' },
-  { index: '02', label: 'Services', to: '/services' },
-  { index: '03', label: 'Projects', to: '/projects' },
-  { index: '04', label: 'Studio', to: '/about' },
-  { index: '05', label: 'Contact', to: '/contact' },
+  { label: 'Home', to: '/' },
+  { label: 'Services', to: '/services' },
+  { label: 'Projects', to: '/projects' },
+  { label: 'Studio', to: '/about' },
+  { label: 'Contact', to: '/contact' },
 ]
 
 /* ---------------------------------------------------------------- services */
