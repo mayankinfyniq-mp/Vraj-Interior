@@ -1,9 +1,4 @@
 <script setup>
-/**
- * SiteHeader — floating island navigation.
- * Uses a solid porcelain background so the logo and navigation
- * remain clearly visible over every hero image.
- */
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { nav } from '@/data/site'
@@ -97,10 +92,6 @@ const isActive = (to) =>
             />
           </RouterLink>
         </nav>
-
-        <!-- =====================================================
-             ACTIONS
-        ====================================================== -->
         <div class="flex items-center gap-3 sm:gap-4">
 
           <!-- ENQUIRE -->
